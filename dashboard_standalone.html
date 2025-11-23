@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; transition: background 0.3s, color 0.3s; }
+        body.light { background: #f5f5f5; color: #333; }
+        body.dark { background: #1a1a1a; color: #e0e0e0; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .theme-selector { margin-bottom: 20px; text-align: center; }
+        .theme-btn { background: #2196F3; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin: 0 5px; }
+        .theme-btn.active { background: #1976D2; }
+        .controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .dark .controls { background: #2a2a2a; }
+        .control-group { display: inline-block; margin-right: 15px; margin-bottom: 10px; }
+        .control-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .control-group select, .control-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .dark .control-group select, .dark .control-group input { background: #333; color: #e0e0e0; border-color: #555; }
+        .stocks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .stock-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .dark .stock-card { background: #2a2a2a; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .stock-symbol { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .stock-price { font-size: 32px; margin-bottom: 5px; }
+        .light .stock-price { color: #333; }
+        .dark .stock-price { color: #e0e0e0; }
+        .stock-change { font-size: 18px; }
+        .positive { color: #4CAF50; }
+        .negative { color: #f44336; }
+        .refresh-btn { background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        .loading { opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Stock Dashboard</h1>
+        </div>
+        
+        <div class="theme-selector">
+            <button class="theme-btn" onclick="setTheme('light')">☀️ Light</button>
+            <button class="theme-btn" onclick="setTheme('dark')">🌙 Dark</button>
+            <button class="theme-btn" onclick="setTheme('system')">💻 System</button>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Market:</label>
+                <select id="market" onchange="updateTickers()">
+                    <option value="stocks">Stocks</option>
+                    <option value="crypto">Crypto</option>
+                    <option value="forex">Forex</option>
+                    <option value="commodities">Commodities</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Ticker:</label>
+                <select id="ticker" multiple size="4" style="min-width: 150px;"></select>
+            </div>
+            
+            <div class="control-group">
+                <label>Start Date:</label>
+                <input type="date" id="startDate" onchange="updateData()">
+            </div>
+            
+            <div class="control-group">
+                <label>End Date:</label>
+                <input type="date" id="endDate" onchange="updateData()">
+            </div>
+            
+            <div class="control-group">
+                <label>Timeframe:</label>
+                <select id="interval" onchange="updateData()">
+                    <option value="1m">1 Minute</option>
+                    <option value="5m">5 Minutes</option>
+                    <option value="15m">15 Minutes</option>
+                    <option value="1h">1 Hour</option>
+                    <option value="1d" selected>1 Day</option>
+                    <option value="1wk">1 Week</option>
+                    <option value="1mo">1 Month</option>
+                </select>
+            </div>
+            
+            <button class="refresh-btn" onclick="fetchAndStore()">Fetch & Store Data</button>
+        </div>
+        
+        <div id="stocks-container" class="stocks-grid"></div>
+    </div>
+
+    <script>
+        const tickers = {
+            stocks: ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'META', 'NVDA', 'AMD', 'NFLX', 'DIS'],
+            crypto: ['BTC-USD', 'ETH-USD', 'BNB-USD', 'SOL-USD', 'XRP-USD', 'ADA-USD', 'DOGE-USD', 'MATIC-USD'],
+            forex: ['EURUSD=X', 'GBPUSD=X', 'USDJPY=X', 'AUDUSD=X', 'USDCAD=X', 'USDCHF=X', 'NZDUSD=X'],
+            commodities: ['GC=F', 'CL=F', 'SI=F', 'NG=F', 'HG=F', 'PL=F']
+        };
+        
+        const today = new Date().toISOString().split('T')[0];
+        const monthAgo = new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
+        document.getElementById('startDate').value = monthAgo;
+        document.getElementById('endDate').value = today;
+        
+        function updateTickers() {
+            const market = document.getElementById('market').value;
+            const tickerSelect = document.getElementById('ticker');
+            tickerSelect.innerHTML = '';
+            
+            tickers[market].forEach(ticker => {
+                const option = document.createElement('option');
+                option.value = ticker;
+                option.textContent = ticker;
+                option.selected = true;
+                tickerSelect.appendChild(option);
+            });
+        }
+        
+        updateTickers();
+        
+        function setTheme(mode) {
+            localStorage.setItem('theme', mode);
+            applyTheme(mode);
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function applyTheme(mode) {
+            if (mode === 'system') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.body.className = isDark ? 'dark' : 'light';
+            } else {
+                document.body.className = mode;
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            if (btn.textContent.toLowerCase().includes(savedTheme)) btn.classList.add('active');
+        });
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (localStorage.getItem('theme') === 'system') applyTheme('system');
+        });
+        
+        function fetchAndStore() {
+            const tickerSelect = document.getElementById('ticker');
+            const selectedTickers = Array.from(tickerSelect.selectedOptions).map(opt => opt.value);
+            
+            if (selectedTickers.length === 0) {
+                alert('Please select at least one ticker');
+                return;
+            }
+            
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const interval = document.getElementById('interval').value;
+            const container = document.getElementById('stocks-container');
+            container.classList.add('loading');
+            container.innerHTML = '<p>Fetching data from YFinance...</p>';
+            
+            const symbols = selectedTickers.join(',');
+            fetch(`http://localhost:8080/api/historical?symbols=${symbols}&start=${start}&end=${end}&interval=${interval}`)
+                .then(response => response.json())
+                .then(data => {
+                    localStorage.setItem('stockData', JSON.stringify(data));
+                    localStorage.setItem('lastFetch', new Date().toISOString());
+                    displayHistorical(data);
+                })
+                .catch(() => container.innerHTML = '<p>Error loading data from YFinance</p>');
+        }
+        
+        function displayHistorical(data) {
+            const container = document.getElementById('stocks-container');
+            container.innerHTML = '';
+            container.classList.remove('loading');
+            
+            for (const [symbol, hist] of Object.entries(data)) {
+                if (!hist.close || hist.close.length === 0) continue;
+                
+                const lastIdx = hist.close.length - 1;
+                const firstPrice = hist.close[0];
+                const lastPrice = hist.close[lastIdx];
+                const change = ((lastPrice - firstPrice) / firstPrice * 100);
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+                const changeSign = change >= 0 ? '+' : '';
+                
+                container.innerHTML += `
+                    <div class="stock-card">
+                        <div class="stock-symbol">${symbol}</div>
+                        <div class="stock-price">$${lastPrice.toFixed(2)}</div>
+                        <div class="stock-change ${changeClass}">${changeSign}${change.toFixed(2)}%</div>
+                        <div>High: $${Math.max(...hist.high).toFixed(2)}</div>
+                        <div>Low: $${Math.min(...hist.low).toFixed(2)}</div>
+                        <div>Data Points: ${hist.close.length}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        const savedData = localStorage.getItem('stockData');
+        if (savedData) {
+            displayHistorical(JSON.parse(savedData));
+        } else {
+            document.getElementById('stocks-container').innerHTML = '<p>Click "Fetch & Store Data" to load historical data from YFinance</p>';
+        }
+    </script>
+</body>
+</html>

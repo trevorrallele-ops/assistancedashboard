@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Dashboard</title></head>
+<body>
+<h1>Market Selector Test</h1>
+<label>Market:</label>
+<select id="market" onchange="updateTickers()">
+    <option value="stocks">Stocks</option>
+    <option value="crypto">Crypto</option>
+    <option value="forex">Forex</option>
+    <option value="commodities">Commodities</option>
+</select>
+<br><br>
+<label>Ticker (Hold Ctrl/Cmd to select multiple):</label>
+<select id="ticker" multiple size="6" style="min-width: 200px;"></select>
+<br><br>
+<button onclick="showSelected()">Show Selected</button>
+<div id="output"></div>
+
+<script>
+const tickers = {
+    stocks: ['AAPL', 'GOOGL', 'MSFT', 'TSLA'],
+    crypto: ['BTC-USD', 'ETH-USD', 'SOL-USD'],
+    forex: ['EURUSD=X', 'GBPUSD=X', 'USDJPY=X'],
+    commodities: ['GC=F (Gold)', 'CL=F (Oil)', 'SI=F (Silver)']
+};
+
+function updateTickers() {
+    const market = document.getElementById('market').value;
+    const tickerSelect = document.getElementById('ticker');
+    tickerSelect.innerHTML = '';
+    
+    tickers[market].forEach(ticker => {
+        const option = document.createElement('option');
+        option.value = ticker;
+        option.textContent = ticker;
+        tickerSelect.appendChild(option);
+    });
+}
+
+function showSelected() {
+    const selected = Array.from(document.getElementById('ticker').selectedOptions).map(o => o.value);
+    document.getElementById('output').innerHTML = '<p>Selected: ' + selected.join(', ') + '</p>';
+}
+
+updateTickers();
+</script>
+</body>
+</html>

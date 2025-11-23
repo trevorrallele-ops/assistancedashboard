@@ -1,0 +1,22 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://10.0.1.120:8080
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 117-128-500
+127.0.0.1 - - [23/Nov/2025 00:36:30] "GET /api/markets HTTP/1.1" 200 -
+127.0.0.1 - - [23/Nov/2025 00:36:49] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:38:25] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:38:33] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:38:35] "GET /favicon.ico HTTP/1.0" 404 -
+127.0.0.1 - - [23/Nov/2025 00:47:08] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:47:09] "GET /favicon.ico HTTP/1.0" 404 -
+127.0.0.1 - - [23/Nov/2025 00:49:25] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:52:14] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:52:48] "GET /?id=4c08e6d6-9fd0-4e10-95a6-2b6bc94f8fa9&vscodeBrowserReqId=1763859166218 HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:56:50] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [23/Nov/2025 00:56:52] "GET /favicon.ico HTTP/1.0" 404 -
